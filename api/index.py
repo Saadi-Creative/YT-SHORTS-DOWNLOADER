@@ -82,12 +82,18 @@ def download_video(url: str, q: queue.Queue):
             eta = clean_ansi(d.get('_eta_str', 'Unknown')).strip()
             file_size = clean_ansi(d.get('_total_bytes_str', d.get('_estimate_bytes_str', 'Unknown'))).strip()
             
+            # Determine download resolution/quality
+            info_dict = d.get('info_dict', {})
+            height = info_dict.get('height')
+            quality_str = f"{height}p" if height else None
+            
             q.put({
                 "status": "downloading",
                 "percent": percent,
                 "speed": speed,
                 "eta": eta,
-                "size": file_size
+                "size": file_size,
+                "quality": quality_str
             })
         elif d['status'] == 'finished':
             q.put({
@@ -96,7 +102,8 @@ def download_video(url: str, q: queue.Queue):
             })
             
     ydl_opts = {
-        'format': 'bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/best[ext=mp4][height<=1080]/best',
+        # Prioritize H.264 (avc1) + AAC (mp4a) up to 1080p, fallback to other non-AV1 formats (like VP9), exclude AV1 (av01) entirely
+        'format': 'bestvideo[vcodec^=avc1][height<=1080]+bestaudio[acodec^=mp4a]/bestvideo[vcodec!*="av01"][height<=1080]+bestaudio[ext=m4a]/best[height<=1080]',
         'ffmpeg_location': ffmpeg_path,
         'outtmpl': temp_path,
         'progress_hooks': [progress_hook],
@@ -109,21 +116,17 @@ def download_video(url: str, q: queue.Queue):
         q.put({"status": "starting", "message": "Fetching video info..."})
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
-            filename = ydl.prepare_filename(info)
             
-            # Since merge_output_format is mp4, yt-dlp often creates an .mp4 file.
-            if filename.endswith('.webm'):
-                base = filename.rsplit('.', 1)[0]
-                if os.path.exists(base + '.mp4'):
-                    filename = base + '.mp4'
+            # Robust file locating: check for the expected .mp4 first
+            expected_mp4 = os.path.join(temp_dir, f"{download_id}.mp4")
+            filename = expected_mp4
             
             if not os.path.exists(filename):
-                # Check for merged mp4 file if filename is different
-                base = os.path.splitext(temp_path.replace('%(ext)s', ''))[0]
-                possible_mp4 = base + '.mp4'
-                if os.path.exists(possible_mp4):
-                    filename = possible_mp4
-
+                # Search the temp directory for any file matching the download_id
+                matched_files = [f for f in os.listdir(temp_dir) if f.startswith(download_id)]
+                if matched_files:
+                    filename = os.path.join(temp_dir, matched_files[0])
+            
             if not os.path.exists(filename):
                 raise Exception("File was not downloaded successfully.")
                 
@@ -135,11 +138,13 @@ def download_video(url: str, q: queue.Queue):
             if direct_url:
                 title = info.get('title', 'downloaded_video')
                 safe_title = "".join([c for c in title if c.isalpha() or c.isdigit() or c==' ']).rstrip()
+                height = info.get('height', '1080')
                 
                 q.put({
                     "status": "done",
                     "url": direct_url,
-                    "title": safe_title
+                    "title": safe_title,
+                    "quality": f"{height}p"
                 })
             else:
                 q.put({"status": "error", "message": "Failed to generate direct download link."})

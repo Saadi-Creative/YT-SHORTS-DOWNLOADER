@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const progressSize = document.getElementById("progressSize");
     const progressSpeed = document.getElementById("progressSpeed");
     const statusMessage = document.getElementById("statusMessage");
+    const videoQuality = document.getElementById("videoQuality");
     
     const successArea = document.getElementById("successArea");
     const directDownloadLink = document.getElementById("directDownloadLink");
@@ -27,6 +28,8 @@ document.addEventListener("DOMContentLoaded", () => {
         progressPercent.textContent = "0%";
         progressSize.textContent = "0 MB";
         progressSpeed.textContent = "0 KB/s";
+        videoQuality.textContent = "Quality: -";
+        videoQuality.classList.add("hidden");
     }
 
     function setLoading(isLoading) {
@@ -77,11 +80,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         statusMessage.textContent = "Downloading high-quality video & audio...";
                         
                         // Parse percent string like "45.2%"
-                        const percentRaw = data.percent.replace("%", "");
                         progressBar.style.width = data.percent;
                         progressPercent.textContent = data.percent;
                         progressSize.textContent = data.size;
                         progressSpeed.textContent = data.speed;
+                        
+                        if (data.quality) {
+                            videoQuality.classList.remove("hidden");
+                            videoQuality.textContent = `Quality: ${data.quality}`;
+                        }
                         break;
                     case "processing":
                         progressContainer.classList.add("hidden");

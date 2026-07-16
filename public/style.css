@@ -195,9 +195,20 @@ button:disabled {
 .progress-stats {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     font-size: 0.85rem;
     color: var(--text-muted);
     font-weight: 500;
+}
+
+.quality-badge {
+    background: rgba(139, 92, 246, 0.2);
+    color: var(--primary);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    border: 1px solid rgba(139, 92, 246, 0.3);
 }
 
 .status-message {
