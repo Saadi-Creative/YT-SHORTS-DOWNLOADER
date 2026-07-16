@@ -8,7 +8,7 @@ import requests
 import imageio_ffmpeg
 import yt_dlp
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
@@ -186,7 +186,33 @@ def download_endpoint(url: str):
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-# Mount static files for local development
-if os.path.exists("public"):
-    app.mount("/", StaticFiles(directory="public", html=True), name="public")
+# Explicit routes to serve the frontend (crucial for Vercel CDN / local fallback compatibility)
+@app.get("/", response_class=HTMLResponse)
+def read_root():
+    index_path = os.path.join("public", "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    raise HTTPException(status_code=404, detail="index.html not found")
+
+@app.get("/style.css")
+def read_style():
+    style_path = os.path.join("public", "style.css")
+    if os.path.exists(style_path):
+        return FileResponse(style_path, media_type="text/css")
+    raise HTTPException(status_code=404, detail="style.css not found")
+
+@app.get("/script.js")
+def read_script():
+    script_path = os.path.join("public", "script.js")
+    if os.path.exists(script_path):
+        return FileResponse(script_path, media_type="application/javascript")
+    raise HTTPException(status_code=404, detail="script.js not found")
+
+@app.get("/downloads/{filename}")
+def read_download(filename: str):
+    download_path = os.path.join("public", "downloads", filename)
+    if os.path.exists(download_path):
+        return FileResponse(download_path)
+    raise HTTPException(status_code=404, detail="File not found")
+
 
