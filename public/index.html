@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shorts Media Downloader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div class="container">
+        <div class="glass-panel">
+            <div class="header">
+                <h1>Shorts<span>Downloader</span></h1>
+                <p>High-Quality 1080p Downloads for Shorts, Reels & TikToks</p>
+            </div>
+
+            <div class="input-group">
+                <input type="url" id="urlInput" placeholder="Paste your video link here..." autocomplete="off">
+                <button id="downloadBtn">
+                    <span class="btn-text">Download</span>
+                    <div class="btn-spinner hidden"></div>
+                </button>
+            </div>
+
+            <div id="statusArea" class="status-area hidden">
+                <div class="progress-container hidden" id="progressContainer">
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progressBar"></div>
+                    </div>
+                    <div class="progress-stats">
+                        <span id="progressPercent">0%</span>
+                        <span id="progressSize">0 MB</span>
+                        <span id="progressSpeed">0 KB/s</span>
+                    </div>
+                </div>
+                
+                <div class="status-message" id="statusMessage">
+                    Starting...
+                </div>
+            </div>
+            
+            <div id="successArea" class="success-area hidden">
+                <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                    <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                    <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+                <p>Download ready! Check your system.</p>
+                <a id="directDownloadLink" href="#" target="_blank" class="secondary-btn">Download Again</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

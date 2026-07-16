@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.DS_Store
+.venv/
+env/
+public/downloads/*
+!.gitignore
+.vercel/
