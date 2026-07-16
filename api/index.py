@@ -189,6 +189,8 @@ def download_endpoint(url: str):
 # Explicit routes to serve the frontend (crucial for Vercel CDN / local fallback compatibility)
 @app.get("/", response_class=HTMLResponse)
 def read_root():
+    if os.path.exists("index.html"):
+        return FileResponse("index.html")
     index_path = os.path.join("public", "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path)
@@ -196,6 +198,8 @@ def read_root():
 
 @app.get("/style.css")
 def read_style():
+    if os.path.exists("style.css"):
+        return FileResponse("style.css", media_type="text/css")
     style_path = os.path.join("public", "style.css")
     if os.path.exists(style_path):
         return FileResponse(style_path, media_type="text/css")
@@ -203,6 +207,8 @@ def read_style():
 
 @app.get("/script.js")
 def read_script():
+    if os.path.exists("script.js"):
+        return FileResponse("script.js", media_type="application/javascript")
     script_path = os.path.join("public", "script.js")
     if os.path.exists(script_path):
         return FileResponse(script_path, media_type="application/javascript")
@@ -210,6 +216,8 @@ def read_script():
 
 @app.get("/downloads/{filename}")
 def read_download(filename: str):
+    if os.path.exists(os.path.join("downloads", filename)):
+        return FileResponse(os.path.join("downloads", filename))
     download_path = os.path.join("public", "downloads", filename)
     if os.path.exists(download_path):
         return FileResponse(download_path)
