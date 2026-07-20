@@ -49,19 +49,6 @@ It features a stunning, dark-themed **glassmorphic UI** and is pre-configured to
 4. **Access the Web App**:
    Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
 
----
-
-## ☁️ Deployment on Vercel
-
-The repository contains a pre-configured `vercel.json` file. Since it is already integrated, you can deploy it in a few clicks:
-
-1. **Push your code to GitHub** (see instructions below).
-2. Go to your **[Vercel Dashboard](https://vercel.com/)** and click **Add New > Project**.
-3. Import this repository.
-4. Keep the default settings and click **Deploy**.
-
----
-
 ## 📁 Project Structure
 
 ```text
