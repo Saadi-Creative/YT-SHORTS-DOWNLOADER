@@ -102,24 +102,41 @@ def download_video(url: str, q: queue.Queue):
             })
             
     ydl_opts = {
-        # Prioritize H.264 (avc1) + AAC (mp4a) up to 1080p, fallback to other non-AV1 formats (like VP9), exclude AV1 (av01) entirely
-        'format': 'bestvideo[vcodec^=avc1][height<=1080]+bestaudio[acodec^=mp4a]/bestvideo[vcodec!*="av01"][height<=1080]+bestaudio[ext=m4a]/best[height<=1080]/best',
+        # Prioritize H.264 (avc1) + AAC (mp4a) up to 1080p, fallback broadly
+        'format': 'bestvideo[vcodec^=avc1][height<=1080]+bestaudio[acodec^=mp4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best',
         'ffmpeg_location': ffmpeg_path,
         'outtmpl': temp_path,
         'progress_hooks': [progress_hook],
         'quiet': True,
         'no_warnings': True,
         'merge_output_format': 'mp4',
+        # android_vr is yt-dlp's official JS-less client — works on servers (no JS runtime needed)
+        # This is the key fix for Vercel/cloud environments where YouTube blocks web clients
         'extractor_args': {
             'youtube': {
-                'player_client': ['tv', 'mweb', 'android', 'ios']
+                'player_client': ['android_vr', 'web_safari', 'mweb']
             }
         }
     }
 
-    cookies_path = os.environ.get("YOUTUBE_COOKIES_PATH", "cookies.txt")
-    if os.path.exists(cookies_path):
-        ydl_opts['cookiefile'] = cookies_path
+    # Method 1: Load cookies from a base64-encoded env variable (ideal for Vercel)
+    # On Vercel dashboard: set YOUTUBE_COOKIES_B64 = base64 of your cookies.txt
+    cookies_b64 = os.environ.get("YOUTUBE_COOKIES_B64", "")
+    if cookies_b64:
+        import tempfile as _tf, base64
+        try:
+            cookies_bytes = base64.b64decode(cookies_b64)
+            cookie_tmp = _tf.NamedTemporaryFile(delete=False, suffix='.txt', mode='wb')
+            cookie_tmp.write(cookies_bytes)
+            cookie_tmp.close()
+            ydl_opts['cookiefile'] = cookie_tmp.name
+        except Exception as e:
+            logging.warning(f"Failed to load YOUTUBE_COOKIES_B64: {e}")
+    else:
+        # Method 2: Load cookies from a local file (for local dev)
+        cookies_path = os.environ.get("YOUTUBE_COOKIES_PATH", "cookies.txt")
+        if os.path.exists(cookies_path):
+            ydl_opts['cookiefile'] = cookies_path
 
     try:
         q.put({"status": "starting", "message": "Fetching video info..."})
