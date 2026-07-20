@@ -103,14 +103,23 @@ def download_video(url: str, q: queue.Queue):
             
     ydl_opts = {
         # Prioritize H.264 (avc1) + AAC (mp4a) up to 1080p, fallback to other non-AV1 formats (like VP9), exclude AV1 (av01) entirely
-        'format': 'bestvideo[vcodec^=avc1][height<=1080]+bestaudio[acodec^=mp4a]/bestvideo[vcodec!*="av01"][height<=1080]+bestaudio[ext=m4a]/best[height<=1080]',
+        'format': 'bestvideo[vcodec^=avc1][height<=1080]+bestaudio[acodec^=mp4a]/bestvideo[vcodec!*="av01"][height<=1080]+bestaudio[ext=m4a]/best[height<=1080]/best',
         'ffmpeg_location': ffmpeg_path,
         'outtmpl': temp_path,
         'progress_hooks': [progress_hook],
         'quiet': True,
         'no_warnings': True,
-        'merge_output_format': 'mp4'
+        'merge_output_format': 'mp4',
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['tv', 'mweb', 'android', 'ios']
+            }
+        }
     }
+
+    cookies_path = os.environ.get("YOUTUBE_COOKIES_PATH", "cookies.txt")
+    if os.path.exists(cookies_path):
+        ydl_opts['cookiefile'] = cookies_path
 
     try:
         q.put({"status": "starting", "message": "Fetching video info..."})
